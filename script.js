@@ -13,24 +13,16 @@ const optionsDiv = document.getElementById('options');
 const playersContainer = document.getElementById('playersContainer');
 
 function newNumbers() {
-    let arr = [];
-    for (let i = 1; i <= 12; i++) arr.push(i);
-    return arr;
+    return Array.from({length: 12}, (_, i) => i + 1);
 }
 
 function render() {
-    playersContainer.innerHTML = '';
-    for (let i = 0; i < players.length; i++) {
-        let p = players[i];
-        let card = document.createElement('div');
-        card.className = 'player-card';
-        if (!rolled && currentPlayer === i) card.style.border = '2px solid black';
-        card.innerHTML = '<div class="player-name">Игрок ' + (i+1) + '</div><div class="numbers">';
-        for (let n of p) card.innerHTML += '<span class="number">' + n + '</span>';
-        card.innerHTML += p.length ? '' : 'ПОБЕДА!';
-        card.innerHTML += '</div>';
-        playersContainer.appendChild(card);
-    }
+    playersContainer.innerHTML = players.map((p, i) => 
+        `<div class="player-card" style="${!rolled && currentPlayer === i ? 'border:2px solid black' : ''}">
+            <div class="player-name">Игрок ${i+1}</div>
+            <div class="numbers">${p.map(n => `<span class="number">${n}</span>`).join('')}${p.length ? '' : 'ПОБЕДА!'}</div>
+        </div>`
+    ).join('');
 }
 
 function nextTurn() {
@@ -40,19 +32,15 @@ function nextTurn() {
     rollBtn.disabled = false;
     turnIndicator.innerText = 'Ход игрока ' + (currentPlayer + 1);
     render();
-    for (let i = 0; i < players.length; i++) {
-        if (players[i].length === 0) {
-            turnIndicator.innerText = 'Игрок ' + (i+1) + ' ПОБЕДИЛ!';
-            rollBtn.disabled = true;
-        }
-    }
+    players.some((p, i) => p.length === 0 && (turnIndicator.innerText = 'Игрок ' + (i+1) + ' ПОБЕДИЛ!', rollBtn.disabled = true));
 }
 
 function makeMove(opt, player) {
     if (opt.includes('+')) {
-        let [a, b] = opt.split('+').map(Number);
-        player.splice(player.indexOf(a), 1);
-        player.splice(player.indexOf(b), 1);
+        opt.split('+').map(Number).forEach(n => {
+            let idx = player.indexOf(n);
+            if (idx !== -1) player.splice(idx, 1);
+        });
     } else {
         player.splice(player.indexOf(Number(opt)), 1);
     }
@@ -87,24 +75,21 @@ function rollDice() {
     }
     rolled = true;
     optionsDiv.innerHTML = '';
-    for (let opt of opts) {
+    opts.map(opt => {
         let btn = document.createElement('button');
         btn.innerText = 'Убрать ' + opt;
         btn.className = 'option-btn';
-        btn.onclick = (function(o) { return function() { makeMove(o, players[currentPlayer]); }; })(opt);
+        btn.onclick = () => makeMove(opt, players[currentPlayer]);
         optionsDiv.appendChild(btn);
-    }
+    });
     rollBtn.disabled = true;
     turnIndicator.innerText = 'Ход игрока ' + (currentPlayer+1) + ' - выберите';
     render();
 }
 
 function startGame() {
-    let count = parseInt(playerCountInput.value);
-    if (count < 2) count = 2;
-    if (count > 6) count = 6;
-    players = [];
-    for (let i = 0; i < count; i++) players.push(newNumbers());
+    let count = Math.min(6, Math.max(2, parseInt(playerCountInput.value) || 2));
+    players = Array.from({length: count}, () => newNumbers());
     currentPlayer = 0;
     rolled = false;
     setupDiv.style.display = 'none';
@@ -116,11 +101,9 @@ function startGame() {
 }
 
 startBtn.onclick = startGame;
-resetBtn.onclick = function() {
+resetBtn.onclick = () => {
     if (setupDiv.style.display === 'none') {
-        let count = players.length;
-        players = [];
-        for (let i = 0; i < count; i++) players.push(newNumbers());
+        players = Array.from({length: players.length}, () => newNumbers());
         currentPlayer = 0;
         rolled = false;
         render();
@@ -129,4 +112,4 @@ resetBtn.onclick = function() {
         optionsDiv.innerHTML = '';
     }
 };
-rollBtn.onclick = rollDice;
+rollBtn.onclick = rollDice; 
