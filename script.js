@@ -37,20 +37,28 @@ function nextTurn() {
 
 function makeMove(opt, player) {
     if (opt.includes('+')) {
-        opt.split('+').map(Number).forEach(n => {
-            let idx = player.indexOf(n);
+        const numbers = opt.split('+').map(Number);
+        let i = 0;
+        while (i < numbers.length) {
+            const idx = player.indexOf(numbers[i]);
             if (idx !== -1) player.splice(idx, 1);
-        });
+            i++;
+        }
     } else {
-        player.splice(player.indexOf(Number(opt)), 1);
+        const num = Number(opt);
+        const idx = player.indexOf(num);
+        if (idx !== -1) player.splice(idx, 1);
     }
+    
     render();
+    
     if (player.length === 0) {
-        turnIndicator.innerText = 'Игрок ' + (currentPlayer+1) + ' ПОБЕДИЛ!';
+        turnIndicator.innerText = 'Игрок ' + (currentPlayer + 1) + ' ПОБЕДИЛ!';
         rollBtn.disabled = true;
         optionsDiv.innerHTML = '';
         return;
     }
+    
     nextTurn();
 }
 
@@ -102,14 +110,16 @@ function startGame() {
 
 startBtn.onclick = startGame;
 resetBtn.onclick = () => {
-    if (setupDiv.style.display === 'none') {
-        players = Array.from({length: players.length}, () => newNumbers());
-        currentPlayer = 0;
-        rolled = false;
-        render();
-        turnIndicator.innerText = 'Ход игрока 1';
-        rollBtn.disabled = false;
-        optionsDiv.innerHTML = '';
-    }
+    setupDiv.style.display = 'block';
+    gameArea.style.display = 'none';
+    playerCountInput.value = '2';
+    playersContainer.innerHTML = '';
+    optionsDiv.innerHTML = '';
+    dice1El.innerText = '?';
+    dice2El.innerText = '?';
+    turnIndicator.innerText = '';
+    players = [];
+    currentPlayer = 0;
+    rolled = false;
 };
 rollBtn.onclick = rollDice; 
