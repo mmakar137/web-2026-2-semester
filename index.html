@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Flashcards</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+    <h1>Flashcards</h1>
+
+    <div class="bar">
+        <select id="deckSelect"></select>
+        <button id="newDeckBtn">+</button>
+        <button id="delDeckBtn">-</button>
+    </div>
+
+    <div class="form">
+        <input id="front" placeholder="Вопрос">
+        <input id="back" placeholder="Ответ">
+        <button id="addBtn">Добавить</button>
+        <button id="cancelBtn" style="display:none">Отмена</button>
+        <span id="msg"></span>
+    </div>
+
+    <div class="study">
+        <label><input type="radio" name="mode" value="all" checked> Все</label>
+        <label><input type="radio" name="mode" value="unlearned"> Невыученные</label>
+        <button id="shuffleBtn">Перемешать</button>
+
+        <div id="card"><div id="cardText"></div></div>
+
+        <div>
+            <button id="prev">&lt;</button>
+            <span id="pos"></span>
+            <button id="next">&gt;</button>
+        </div>
+
+        <button id="flipBtn">Перевернуть</button>
+        <button id="markBtn"></button>
+
+        <div id="emptyMsg" style="display:none">Нет карточек</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>Вопрос</th><th>Ответ</th><th>✓</th><th></th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

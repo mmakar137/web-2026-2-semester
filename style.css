@@ -1,0 +1,97 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: system-ui, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+}
+
+.app {
+    max-width: 800px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.bar, .form, .study, table {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.bar {
+    display: flex;
+    gap: 10px;
+}
+
+select, input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #667eea;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #5a67d8;
+}
+
+.study {
+    text-align: center;
+}
+
+.study > * {
+    margin: 8px 0;
+}
+
+#card {
+    background: #fef3c7;
+    border-radius: 16px;
+    padding: 40px;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#msg {
+    margin-left: 10px;
+    color: #e53e3e;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background: #667eea;
+    color: #fff;
+}
