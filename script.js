@@ -4,6 +4,18 @@ let level = 0;
 let canClick = false;
 let best = Number(localStorage.best) || 0;
 
+let info = document.getElementById("info");
+let startBtn = document.getElementById("startBtn");
+
+// кнопка старта
+startBtn.addEventListener("click", start);
+
+// кнопки игры
+document.getElementById("b0").addEventListener("click", function(){ clickBtn(0); });
+document.getElementById("b1").addEventListener("click", function(){ clickBtn(1); });
+document.getElementById("b2").addEventListener("click", function(){ clickBtn(2); });
+document.getElementById("b3").addEventListener("click", function(){ clickBtn(3); });
+
 function start(){
   seq = [];
   level = 0;
@@ -15,11 +27,7 @@ function next(){
   level++;
   canClick = false;
 
-  document.getElementById("info").innerText =
-    "Level " + level + " | Best " + best;
-
   seq.push(Math.floor(Math.random()*4));
-
   countdown();
 }
 
@@ -33,8 +41,7 @@ function countdown(){
       return;
     }
 
-    document.getElementById("info").innerText =
-      steps[i] + " | Level " + level + " | Best " + best;
+    info.innerText = steps[i] + " | Best " + best;
 
     i++;
     setTimeout(step, 500);
@@ -49,6 +56,7 @@ function show(){
   function step(){
     if(i >= seq.length){
       canClick = true;
+      info.innerText = "Your turn | Level " + level + " | Best " + best;
       return;
     }
 
@@ -72,11 +80,12 @@ function clickBtn(n){
   let i = user.length - 1;
 
   if(user[i] !== seq[i]){
-    document.getElementById("info").innerText =
-      "Game Over! Level " + (level - 1);
+    let score = level - 1;
 
-    if(level > best){
-      best = level;
+    info.innerText = "Game Over! Score " + score + " | Best " + best;
+
+    if(score > best){
+      best = score;
       localStorage.best = best;
     }
 
