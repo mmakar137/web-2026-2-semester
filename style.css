@@ -1,32 +1,40 @@
 body {
-  text-align: center;
-  font-family: sans-serif;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
 }
 
-#game {
-  display: grid;
-  grid-template-columns: repeat(2, 100px);
-  gap: 10px;
-  justify-content: center;
-  margin: 20px;
+.container {
+    width: 600px;
+    margin: 20px auto;
 }
 
-.btn {
-  width: 100px;
-  height: 100px;
-  opacity: 0.4;
-  cursor: pointer;
+#search {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
 }
 
-.active {
-  opacity: 1;
+.post {
+    background: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
 }
 
-#b0 { background: red; }
-#b1 { background: green; }
-#b2 { background: blue; }
-#b3 { background: yellow; }
+#loadMore {
+    width: 100%;
+    padding: 10px;
+    cursor: pointer;
+}
 
-button {
-  padding: 10px 20px;
+#loader {
+    text-align: center;
+    display: none;
+    margin: 10px;
+}
+
+#message {
+    text-align: center;
+    margin: 10px;
+    color: red;
 }

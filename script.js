@@ -1,91 +1,154 @@
-let seq = [];
-let user = [];
-let level = 0;
-let canClick = false;
-let best = Number(localStorage.best) || 0;
+class App {
+    constructor() {
+        this.baseUrl = 'https://jsonplaceholder.typicode.com/posts';
+        this.limit = 10;
 
-function start(){
-  seq = [];
-  level = 0;
-  next();
-}
+        this.page = 1;
+        this.query = '';
+        this.loading = false;
+        this.hasMore = true;
 
-function next(){
-  user = [];
-  level++;
-  canClick = false;
+        this.posts = document.getElementById('posts');
+        this.loader = document.getElementById('loader');
+        this.error = document.getElementById('error');
+        this.empty = document.getElementById('empty');
+        this.search = document.getElementById('search');
+        this.loadMoreBtn = document.getElementById('loadMore');
+        this.sentinel = document.getElementById('sentinel');
 
-  document.getElementById("info").innerText =
-    "Level " + level + " | Best " + best;
-
-  seq.push(Math.floor(Math.random()*4));
-
-  countdown();
-}
-
-function countdown(){
-  let steps = ["Ready", "3", "2", "1", "Go"];
-  let i = 0;
-
-  function step(){
-    if(i >= steps.length){
-      show();
-      return;
+        this.init();
     }
 
-    document.getElementById("info").innerText =
-      steps[i] + " | Level " + level + " | Best " + best;
+    init() {
+        this.search.addEventListener('input', this.debounce((e) => {
+            this.query = e.target.value.trim();
+            this.page = 1;
+            this.hasMore = true;
 
-    i++;
-    setTimeout(step, 500);
-  }
+            this.posts.innerHTML = '';
+            this.loadPosts();
+        }, 300));
 
-  step();
-}
+        this.loadMoreBtn.addEventListener('click', () => {
+            this.loadPosts();
+        });
 
-function show(){
-  let i = 0;
+        this.createObserver();
 
-  function step(){
-    if(i >= seq.length){
-      canClick = true;
-      return;
+        this.loadPosts();
     }
 
-    let b = document.getElementById("b" + seq[i]);
-    b.classList.add("active");
-
-    setTimeout(function(){
-      b.classList.remove("active");
-      i++;
-      setTimeout(step, 300);
-    }, 500);
-  }
-
-  setTimeout(step, 300);
-}
-
-function clickBtn(n){
-  if(!canClick) return;
-
-  user.push(n);
-  let i = user.length - 1;
-
-  if(user[i] !== seq[i]){
-    document.getElementById("info").innerText =
-      "Game Over! Level " + (level - 1);
-
-    if(level > best){
-      best = level;
-      localStorage.best = best;
+    debounce(fn, delay) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
     }
 
-    canClick = false;
-    return;
-  }
+    async loadPosts() {
+        if (this.loading || !this.hasMore) return;
 
-  if(user.length === seq.length){
-    canClick = false;
-    setTimeout(next, 700);
-  }
+        this.loading = true;
+        this.showLoader();
+        this.hideError();
+        this.hideEmpty();
+
+        try {
+            let url = `${this.baseUrl}?_page=${this.page}&_limit=${this.limit}`;
+
+            if (this.query) {
+                url += `&title_like=${this.query}`;
+            }
+
+            const res = await fetch(url);
+
+            if (!res.ok) {
+                throw new Error('Ошибка загрузки');
+            }
+
+            const data = await res.json();
+
+            if (data.length === 0) {
+                if (this.page === 1) {
+                    this.showEmpty();
+                }
+                this.hasMore = false;
+                this.loadMoreBtn.disabled = true;
+                return;
+            }
+
+            this.render(data);
+            this.page++;
+
+        } catch (e) {
+            this.showError(e.message);
+        } finally {
+            this.loading = false;
+            this.hideLoader();
+        }
+    }
+
+    render(data) {
+        let i = 0;
+
+        while (i < data.length) {
+            const post = data[i];
+
+            const div = document.createElement('div');
+            div.className = 'post';
+
+            const title = document.createElement('h3');
+            title.textContent = post.title;
+
+            const body = document.createElement('p');
+            body.textContent = post.body;
+
+            div.appendChild(title);
+            div.appendChild(body);
+
+            this.posts.appendChild(div);
+
+            i++;
+        }
+    }
+
+    createObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                this.loadPosts();
+            }
+        });
+
+        observer.observe(this.sentinel);
+    }
+
+    showLoader() {
+        this.loader.classList.remove('hidden');
+    }
+
+    hideLoader() {
+        this.loader.classList.add('hidden');
+    }
+
+    showError(text) {
+        this.error.textContent = text;
+        this.error.classList.remove('hidden');
+    }
+
+    hideError() {
+        this.error.classList.add('hidden');
+    }
+
+    showEmpty() {
+        this.empty.classList.remove('hidden');
+    }
+
+    hideEmpty() {
+        this.empty.classList.add('hidden');
+    }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    new App();
+});
