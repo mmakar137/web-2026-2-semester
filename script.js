@@ -1,77 +1,125 @@
-let secretNumber = '';
-let attempts = 0;
+let players, currentPlayer, rolled, d1, d2;
 
-function generateSecretNumber() {
-    const digits = [];
-    while (digits.length < 4) {
-        const digit = Math.floor(Math.random() * 10);
-        if (!digits.includes(digit)) {
-            digits.push(digit);
-        }
-    }
-    return digits.join('');
+const setupDiv = document.getElementById('setup');
+const gameArea = document.getElementById('gameArea');
+const playerCountInput = document.getElementById('playerCount');
+const startBtn = document.getElementById('startBtn');
+const rollBtn = document.getElementById('rollBtn');
+const resetBtn = document.getElementById('resetBtn');
+const dice1El = document.getElementById('dice1');
+const dice2El = document.getElementById('dice2');
+const turnIndicator = document.getElementById('turnIndicator');
+const optionsDiv = document.getElementById('options');
+const playersContainer = document.getElementById('playersContainer');
+
+function newNumbers() {
+    return Array.from({length: 12}, (_, i) => i + 1);
 }
 
-function evaluateGuess(guess) {
-    let bulls = 0;
-    let cows = 0;
-    const secretDigits = secretNumber.split('');
-    const guessDigits = guess.split('');
-
-    for (let i = 0; i < 4; i++) {
-        if (guessDigits[i] === secretDigits[i]) {
-            bulls++;
-            secretDigits[i] = null;
-            guessDigits[i] = null;
-        }
-    }
-
-    for (let i = 0; i < 4; i++) {
-        if (guessDigits[i] !== null) {
-            const indexInSecret = secretDigits.indexOf(guessDigits[i]);
-            if (indexInSecret !== -1) {
-                cows++;
-                secretDigits[indexInSecret] = null;
-            }
-        }
-    }
-
-    return { bulls, cows };
+function render() {
+    playersContainer.innerHTML = players.map((p, i) => 
+        `<div class="player-card" style="${!rolled && currentPlayer === i ? 'border:2px solid black' : ''}">
+            <div class="player-name">Игрок ${i+1}</div>
+            <div class="numbers">${p.map(n => `<span class="number">${n}</span>`).join('')}${p.length ? '' : 'ПОБЕДА!'}</div>
+        </div>`
+    ).join('');
 }
 
-function makeGuess() {
-    const guessInput = document.getElementById('guessInput');
-    const guess = guessInput.value;
-    const output = document.getElementById('output');
+function nextTurn() {
+    currentPlayer = (currentPlayer + 1) % players.length;
+    rolled = false;
+    optionsDiv.innerHTML = '';
+    rollBtn.disabled = false;
+    turnIndicator.innerText = 'Ход игрока ' + (currentPlayer + 1);
+    render();
+    players.some((p, i) => p.length === 0 && (turnIndicator.innerText = 'Игрок ' + (i+1) + ' ПОБЕДИЛ!', rollBtn.disabled = true));
+}
 
-    if (guess.length !== 4 || !/^\d+$/.test(guess)) {
-        output.innerHTML += "Invalid guess. Please enter a 4-digit number.\n";
-        guessInput.value = '';
+function makeMove(opt, player) {
+    if (opt.includes('+')) {
+        const numbers = opt.split('+').map(Number);
+        let i = 0;
+        while (i < numbers.length) {
+            const idx = player.indexOf(numbers[i]);
+            if (idx !== -1) player.splice(idx, 1);
+            i++;
+        }
+    } else {
+        const num = Number(opt);
+        const idx = player.indexOf(num);
+        if (idx !== -1) player.splice(idx, 1);
+    }
+    
+    render();
+    
+    if (player.length === 0) {
+        turnIndicator.innerText = 'Игрок ' + (currentPlayer + 1) + ' ПОБЕДИЛ!';
+        rollBtn.disabled = true;
+        optionsDiv.innerHTML = '';
         return;
     }
+    
+    nextTurn();
+}
 
-    attempts++;
-    const { bulls, cows } = evaluateGuess(guess);
-
-    output.innerHTML += `Attempt ${attempts}: Guess = ${guess}, Bulls = ${bulls}, Cows = ${cows}\n`;
-
-    if (bulls === 4) {
-        output.innerHTML += `Congratulations! You guessed the number ${secretNumber} in ${attempts} attempts.\n`;
+function rollDice() {
+    if (rolled) { turnIndicator.innerText = 'Уже бросали!'; return; }
+    d1 = Math.floor(Math.random() * 6) + 1;
+    d2 = Math.floor(Math.random() * 6) + 1;
+    const map = {1:'⚀',2:'⚁',3:'⚂',4:'⚃',5:'⚄',6:'⚅'};
+    dice1El.innerText = map[d1];
+    dice2El.innerText = map[d2];
+    let p = players[currentPlayer];
+    let sum = d1 + d2;
+    let opts = [];
+    if (p.includes(d1)) opts.push('' + d1);
+    if (p.includes(d2)) opts.push('' + d2);
+    if (p.includes(sum)) opts.push('' + sum);
+    if (p.includes(d1) && p.includes(d2) && d1 !== d2) opts.push(d1 + '+' + d2);
+    if (opts.length === 0) {
+        turnIndicator.innerText = 'Нет ходов -> переход';
+        setTimeout(nextTurn, 800);
         return;
     }
-
-    guessInput.value = '';
+    rolled = true;
+    optionsDiv.innerHTML = '';
+    opts.map(opt => {
+        let btn = document.createElement('button');
+        btn.innerText = 'Убрать ' + opt;
+        btn.className = 'option-btn';
+        btn.onclick = () => makeMove(opt, players[currentPlayer]);
+        optionsDiv.appendChild(btn);
+    });
+    rollBtn.disabled = true;
+    turnIndicator.innerText = 'Ход игрока ' + (currentPlayer+1) + ' - выберите';
+    render();
 }
 
-function newGame() {
-    secretNumber = generateSecretNumber();
-    attempts = 0;
-    const output = document.getElementById('output');
-    output.innerHTML = "Enter your 4-digit guess (e.g., 0123):\n";
-    document.getElementById('guessInput').value = '';
-    console.log('Загадано:', secretNumber);
+function startGame() {
+    let count = Math.min(6, Math.max(2, parseInt(playerCountInput.value) || 2));
+    players = Array.from({length: count}, () => newNumbers());
+    currentPlayer = 0;
+    rolled = false;
+    setupDiv.style.display = 'none';
+    gameArea.style.display = 'block';
+    render();
+    turnIndicator.innerText = 'Ход игрока 1';
+    rollBtn.disabled = false;
+    optionsDiv.innerHTML = '';
 }
 
-secretNumber = generateSecretNumber();
-document.getElementById('output').innerHTML = "Enter your 4-digit guess (e.g., 0123):\n";
-console.log('Загадано:', secretNumber);
+startBtn.onclick = startGame;
+resetBtn.onclick = () => {
+    setupDiv.style.display = 'block';
+    gameArea.style.display = 'none';
+    playerCountInput.value = '2';
+    playersContainer.innerHTML = '';
+    optionsDiv.innerHTML = '';
+    dice1El.innerText = '?';
+    dice2El.innerText = '?';
+    turnIndicator.innerText = '';
+    players = [];
+    currentPlayer = 0;
+    rolled = false;
+};
+rollBtn.onclick = rollDice; 
